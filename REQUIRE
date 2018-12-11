@@ -1,0 +1,7 @@
+julia 0.7
+OrdinaryDiffEq
+ControlSystems
+Interact
+Plots
+Roots
+ForwardDiff
