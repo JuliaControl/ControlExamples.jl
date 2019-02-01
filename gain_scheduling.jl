@@ -42,7 +42,7 @@ function GainSchedulingSimulator(P,ri,controllers::AbstractVector{Tu},conditions
     f = function(der,x,p,t)
         xyr = (x[pinds],y(x,t),r(x,t))
         index = findfirst(c->c(xyr...), conditions)
-        @assert !isa(index, nothing) "No condition returned true"
+        @assert (index != nothing) "No condition returned true"
         et = e(x,t)
         ind = P.nx+1 # First index of currently updated controller
         for c in controllers
