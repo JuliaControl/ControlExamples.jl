@@ -1,0 +1,64 @@
+name: CI
+on:
+  - push
+  - pull_request
+jobs:
+  notebooks:
+    name: List Notebooks
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.notebooks.outputs.value }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: List Notebooks as JSON
+        uses: sergeysova/jq-action@v2
+        id: notebooks
+        with:
+          cmd: 'ls *.ipynb | jq -R . | jq -sc .'
+      - run: 'echo "${{steps.notebooks.outputs.value}}"'
+  test:
+    name: Julia ${{ matrix.julia-version }} - ${{ matrix.notebook }}
+    needs: notebooks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.5'
+          - 'nightly'
+        python-version:
+          - '3.x'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+        notebook: ${{ fromJSON(needs.notebooks.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.julia-version }}
+          arch: ${{ matrix.arch }}
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+            ${{ runner.os }}-
+      - name: Set up Julia project
+        # Although IJulia is in Project.toml, it won't be available to Jupyter unless we do something to force it.
+        run: julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+      - run: pip install
+          jupyter
+          matplotlib
+      - name: Run notebooks
+        run: |
+          v=julia-`julia -e 'print("$(VERSION.major).$(VERSION.minor)")'`
+          jupyter nbconvert --ExecutePreprocessor.kernel_name="$v" --to=notebook --execute ${{ matrix.notebook }}
