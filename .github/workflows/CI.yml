@@ -56,7 +56,7 @@ jobs:
         # Although IJulia is in Project.toml, it won't be available to Jupyter unless we do something to force it.
         run: julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
       - run: pip install
-          jupyter
+          nbconvert
           matplotlib
       - name: Run notebooks
         run: |
