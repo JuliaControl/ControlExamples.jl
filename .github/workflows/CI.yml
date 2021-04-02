@@ -25,7 +25,6 @@ jobs:
       matrix:
         julia-version:
           - '1.5'
-          - 'nightly'
         python-version:
           - '3.x'
         os:
