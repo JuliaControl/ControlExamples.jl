@@ -114,7 +114,7 @@ Feedback implies making and acting on **measurements**.
 
 Feedback allows you to make accurate systems out of inaccurate components:
 
-### Early example: Vacuum tube amplifiers
+## Early example: Vacuum tube amplifiers
 Vacuum tubes were used for early telecommunication.
 
 A vacuum tube is *highly nonlinear* and the amplification *changes with temperature*. How can you possbly make a good sounding amplifier out of such a component?
@@ -261,12 +261,14 @@ System types are generic w.r.t. element types
 # ╔═╡ 9d90fae3-5cfc-4ff1-a6aa-112e25c98ef0
 md""" #### GPU
 ```julia
+using CUDA
 A   = cu([-1.2 0; 0.1 -0.4]);  B = cu([1.2; 0])
 C   = cu([1 0]);               D = cu([0])
 sys = HeteroStateSpace(A, B, C, D)
 ```
 #### Symbolics
 ```julia
+using Symbolics
 @syms δ k2 γ
 Gc = -k2 * (s + δ) / (s + γ)
 sys_cl = feedback(H, Gc)
