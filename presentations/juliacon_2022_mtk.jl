@@ -20,13 +20,6 @@ using Kroki # For the block diagram
 # ╔═╡ 0c90bc5f-9a0b-4e10-ae34-f7460805c8f0
 html"<button onclick='present()'>present</button>"
 
-# ╔═╡ 0abd1ff0-d13c-4850-a16d-40a89dc4fc06
-md"""
-#### TODO:
-- Change call to jacobian calculation to `linearize` when available. 
-- Incorporate operating point in StateSpace (PR pending)
-"""
-
 # ╔═╡ 9ea9b12b-a3e3-4f17-ab01-ac22a8034257
 md"""
 # Complete control design workflow--ControlSystems meets ModelingToolkit
@@ -95,9 +88,6 @@ Find a steady-state operating point by simulating for a long time:
 # ╔═╡ d58306fc-97c1-4e77-9b8f-3ede99e1c8c3
 md"## Linearize the system:"
 
-# ╔═╡ 01a93b57-c826-430c-b99a-aaea609b8386
-md"Contruct a ControlSystems.jl `StateSpace` object"
-
 # ╔═╡ ca22eddf-d003-4ca6-9e7c-ea8913a3e776
 md"""
 ## LQG design with integral action
@@ -143,6 +133,12 @@ We make use of [SymbolicControlSystems.jl](https://github.com/JuliaControl/Symbo
 
 # ╔═╡ d7fb4856-9dd7-4bd4-9e9e-faf5d4a5c3c6
 md"We first discretize the continuous-time controller using the Tustin method:"
+
+# ╔═╡ 78876d75-8f62-4607-9937-6f7e341c7161
+md"""
+---
+End of presentation
+"""
 
 # ╔═╡ 47de7694-4245-47b4-a4fe-c2e98b286897
 html"""<style>
@@ -220,27 +216,11 @@ h0 = sol[end][1:4] # Steady state
 # ╔═╡ 3e4986f9-c4f8-4f1f-ae32-756cba3dd485
 plot(sol, title="Steady state solution")
 
-# ╔═╡ 71d096b4-1e02-49c7-8cc0-b2af871172da
-states(quadsys)
-
-# ╔═╡ ea39b8cf-1fed-41ec-962a-ea1571e3be91
-AB = calculate_jacobian(quadsys) # TODO: replace this block with a call to linearize
-
-# ╔═╡ d156bd7a-1a49-4aba-90aa-b6336789eb16
+# ╔═╡ 034d9de1-999a-44a2-b981-b39576bc9039
 begin
-	# TODO: replace this block with a call to linearize
-	ABnum = substitute.(AB, Ref(Dict(collect(h .=> h0)..., collect(u .=> u0)...)))
-	ABnum = ABnum .|> ModelingToolkit.value .|> Float64
-	A = ABnum[1:4, 1:4] 
-	B = ABnum[1:4, 5:6]
-	(; A, B)
+	sys_matrices, _ = linearize(quadsys, u, y, op=Dict((h .=> h0)..., (u .=> u0)...))
+	sys = ss(sys_matrices...)
 end
-
-# ╔═╡ 5f784148-e381-4e1c-851c-361e6bcd4246
-begin
-	C = [1 0 0 0; 0 1 0 0] # We can measure the levels in tanks 1 and 2
-	sys = ss(A,B,C,0)
-end;
 
 # ╔═╡ 7b7b031e-3c09-499d-be80-e9bbf227fbf6
 augsys = add_low_frequency_disturbance(sys; ϵ=1e-6);
@@ -278,12 +258,15 @@ discrete_controller = c2d(controller, 1.0, :tustin);
 
 # ╔═╡ 6d5381a4-5786-40c6-8dfc-f9fbaed139aa
 # ╠═╡ show_logs = false
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	code = SymbolicControlSystems.ccode(discrete_controller
 		|> modal_form |> first |> round_coefficients  # Rounding and modal form for nicer printing, don't do this in practice
 	)
 	Markdown.parse("```\n" * code * "\n```") # Make the code display nicely
 end
+  ╠═╡ =#
 
 # ╔═╡ 132f7bf8-20bf-4067-a091-c4f1b36d4a0c
 # ╠═╡ show_logs = false
@@ -314,7 +297,6 @@ any(<(0), reduce(hcat, sol2[quadsys.h])) && @error "Negative tank heights during
 
 # ╔═╡ Cell order:
 # ╟─0c90bc5f-9a0b-4e10-ae34-f7460805c8f0
-# ╟─0abd1ff0-d13c-4850-a16d-40a89dc4fc06
 # ╟─9ea9b12b-a3e3-4f17-ab01-ac22a8034257
 # ╟─638e8fad-ac00-44b4-8daf-b594ad1801c8
 # ╟─5da7140f-9042-4250-b3e1-dbc8673c2502
@@ -325,11 +307,7 @@ any(<(0), reduce(hcat, sol2[quadsys.h])) && @error "Negative tank heights during
 # ╠═840b037e-742b-4ff7-aecb-220688b53c58
 # ╠═3e4986f9-c4f8-4f1f-ae32-756cba3dd485
 # ╟─d58306fc-97c1-4e77-9b8f-3ede99e1c8c3
-# ╠═71d096b4-1e02-49c7-8cc0-b2af871172da
-# ╠═ea39b8cf-1fed-41ec-962a-ea1571e3be91
-# ╠═d156bd7a-1a49-4aba-90aa-b6336789eb16
-# ╟─01a93b57-c826-430c-b99a-aaea609b8386
-# ╠═5f784148-e381-4e1c-851c-361e6bcd4246
+# ╠═034d9de1-999a-44a2-b981-b39576bc9039
 # ╟─ca22eddf-d003-4ca6-9e7c-ea8913a3e776
 # ╠═7b7b031e-3c09-499d-be80-e9bbf227fbf6
 # ╟─1b2be79e-7379-4e2b-8d2c-86fc36e1b7f6
@@ -354,6 +332,7 @@ any(<(0), reduce(hcat, sol2[quadsys.h])) && @error "Negative tank heights during
 # ╟─d7fb4856-9dd7-4bd4-9e9e-faf5d4a5c3c6
 # ╠═c1c623e2-fa18-4c9d-8b0a-50ec82fff840
 # ╠═6d5381a4-5786-40c6-8dfc-f9fbaed139aa
+# ╟─78876d75-8f62-4607-9937-6f7e341c7161
 # ╠═47de7694-4245-47b4-a4fe-c2e98b286897
 # ╠═db810395-88a6-4767-8f8c-2229a49a6372
 # ╠═39fde46a-f13d-11ec-13f9-1f07466e8243

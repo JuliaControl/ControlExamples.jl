@@ -119,7 +119,7 @@ Our knowledge of the world is inaccurate, models are inaccurate, sensors are noi
 **Uncertainty is the fundamental motivation for feedback**.
 
 ```
- r  ┌───┐ y 
+ u  ┌───┐ y 
 ───►│ P ├──►   Open loop
     └───┘
 ```
@@ -127,13 +127,13 @@ Our knowledge of the world is inaccurate, models are inaccurate, sensors are noi
 ### Feedback
 Feedback implies making and acting on **measurements**.
 ```
-r     ┌───┐   y
-───+─►│ P ├─┬───►
-  -▲  └───┘ │
-   │        │  Closed loop
-   │  ┌───┐ │
-   └──┤ K │◄┘
-      └───┘
+r   ┌─────┐     ┌─────┐
+───►│     │  u  │     │ y
+    │  C  ├────►│  P  ├─┬─►  Closed loop
+  ┌►│     │     │     │ │
+  │ └─────┘     └─────┘ │
+  │                     │
+  └─────────────────────┘
 ```	
 Feedback allows you to make *accurate systems* out of *inaccurate components*.
 """
